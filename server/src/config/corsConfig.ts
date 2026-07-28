@@ -1,6 +1,8 @@
-require("dotenv").config();
-const cors = require("cors");
+import { config } from "dotenv";
+import cors from "cors";
 import type { CorsOptions } from "cors";
+
+config();
 
 type StaticOrigin = boolean | string | RegExp | Array<boolean | string | RegExp>;
 
