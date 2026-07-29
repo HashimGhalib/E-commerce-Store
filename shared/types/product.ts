@@ -1,21 +1,26 @@
-export interface ProductVariant {
-    id: string; // UUID
+import type { Document, Types } from "mongoose";
+
+export interface ProductParams {
+    slug: string;
+}
+
+export interface IProductVariant {
     name: string;
-    value: string;
+    value: string[];
     stock: number;
 }
 
-export interface Product {
-    id: string; // UUID
+export interface IProduct extends Document {
     name: string;
     slug: string;
     description: string;
     price: number;
     images: string[];
-    category: string;
+    category: Types.ObjectId;
     stock: number;
-    variants?: ProductVariant[];
+    variants?: IProductVariant[];
 
     createdAt: string;
     updatedAt: string;
 }
+
