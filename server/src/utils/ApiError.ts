@@ -1,7 +1,7 @@
 // server/src/utils/ApiError.ts
 export class ApiError extends Error {
     public readonly statusCode: number;
-    public readonly errors?: any[] | undefined;
+    public readonly errors?: any[];
     public readonly isOperational: boolean;
 
     constructor(
@@ -13,8 +13,11 @@ export class ApiError extends Error {
     ) {
         super(message);
         this.statusCode = statusCode;
-        this.errors = errors;
         this.isOperational = isOperational;
+
+        if (errors !== undefined) {
+            this.errors = errors;
+        }
 
         if (stack) {
             this.stack = stack;

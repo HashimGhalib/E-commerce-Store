@@ -60,10 +60,30 @@ export const getProducts = async (
             filter.$text = { $search: req.query.search as string };
         }
 
+        // Dynamic sorting logic
+        const sortQuery = (req.query.sort as string) || "";
+        let sortOption: Record<string, 1 | -1> = {
+            createdAt: -1
+        }
+
+        switch (sortQuery) {
+            case "price_asc":
+                sortOption = { price: 1 };
+                break;
+            case "price_desc":
+                sortOption = { price: -1 };
+                break;
+            case "name_asc":
+                sortOption = { name: 1 };
+                break;
+            default:
+                sortOption = { createdAt: -1 };
+        }
+
         const [products, total] = await Promise.all([
             Product.find(filter)
                 .populate("category", "name slug")
-                .sort({ createdAt: -1 })
+                .sort(sortOption)
                 .skip(skip)
                 .limit(limit),
             Product.countDocuments(filter),

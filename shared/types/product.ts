@@ -1,4 +1,5 @@
 import type { Document, Types } from "mongoose";
+import { ICategory } from "./category";
 
 export interface ProductParams {
     slug: string;
@@ -15,8 +16,8 @@ export interface IProduct extends Document {
     slug: string;
     description: string;
     price: number;
-    images: string[];
-    category: Types.ObjectId;
+    image: string;
+    category: Types.ObjectId | string | ICategory;
     stock: number;
     variants?: IProductVariant[];
 

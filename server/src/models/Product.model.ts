@@ -37,7 +37,7 @@ const productSchema = new Schema<IProduct>(
             required: true,
             min: 0
         },
-        images: [{
+        image: [{
             type: String,
             required: true
         }],
