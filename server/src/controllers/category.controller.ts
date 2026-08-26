@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Category } from "../models/Category.model";
-import { ApiResponse, ICategory, CategoryTreeItem } from "shared";
+import { ApiResponse as IApiResponse, ICategory, CategoryTreeItem } from "shared";
 import { CreateCategoryInput } from "../validators/schemas";
 import slugify from "slugify";
+import { ApiResponse } from "../utils/ApiResponse";
 
 
 const buildCategoryTree = (
@@ -38,7 +39,7 @@ const buildCategoryTree = (
  */
 export const createCategory = async (
     req: Request<{}, {}, CreateCategoryInput>,
-    res: Response<ApiResponse<ICategory>>
+    res: Response<IApiResponse<ICategory>>
 ): Promise<void> => {
     try {
         const { name, description, parent } = req.body;
@@ -78,20 +79,54 @@ export const createCategory = async (
  * @route   GET /api/categories
  */
 export const getCategory = async (
-    _req: Request,
-    res: Response<ApiResponse<ICategory[]>>
+    req: Request,
+    res: Response,
+    next: NextFunction
 ): Promise<void> => {
     try {
-        const categories = await Category.find()
-            .populate("parent", "name slug")
-            .sort({ name: 1 });
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 6;
+        const skip = (page - 1) * limit;
 
-        res.status(200).json({
-            success: true,
-            data: categories,
-        });
+        const filter: Record<string, any> = {};
+
+        if (req.query.slug) {
+            filter.slug = req.query.slug;
+        }
+
+        // Dynamic sorting logic
+        const sortQuery = (req.query.sort as string) || "";
+        let sortOption: Record<string, 1 | -1> = {
+            createdAt: -1
+        }
+
+        switch (sortQuery) {
+            case "price_asc":
+                sortOption = { price: 1 };
+                break;
+            case "price_desc":
+                sortOption = { price: -1 };
+                break;
+            case "name_asc":
+                sortOption = { name: 1 };
+                break;
+            default:
+                sortOption = { createdAt: -1 };
+        }
+
+
+        const [categories, total] = await Promise.all([
+            Category.find(filter)
+                .populate("parent", "name slug")
+                .sort(sortOption)
+                .skip(skip)
+                .limit(limit),
+            Category.countDocuments(filter)
+        ]);
+
+        ApiResponse.paginated(res, 200, categories, page, limit, total);
     } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message || "Server Error" });
+        next(error);
     }
 };
 
@@ -101,7 +136,7 @@ export const getCategory = async (
  */
 export const getCategoryTree = async (
     _req: Request,
-    res: Response<ApiResponse<CategoryTreeItem[]>>
+    res: Response<IApiResponse<CategoryTreeItem[]>>
 ): Promise<void> => {
     try {
         const allCategories = await Category.find().lean();
@@ -122,7 +157,7 @@ export const getCategoryTree = async (
  */
 export const getCategoryBySlug = async (
     req: Request,
-    res: Response<ApiResponse<ICategory>>
+    res: Response<IApiResponse<ICategory>>
 ): Promise<void> => {
     try {
         const { slug } = req.params;
@@ -149,7 +184,7 @@ export const getCategoryBySlug = async (
  */
 export const updateCategory = async (
     req: Request,
-    res: Response<ApiResponse<ICategory>>
+    res: Response<IApiResponse<ICategory>>
 ): Promise<void> => {
     try {
         const { id } = req.params;
@@ -202,7 +237,7 @@ export const updateCategory = async (
  */
 export const deleteCategory = async (
     req: Request,
-    res: Response<ApiResponse>
+    res: Response<IApiResponse>
 ): Promise<void> => {
     try {
         const { id } = req.params;

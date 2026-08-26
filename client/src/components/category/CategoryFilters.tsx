@@ -12,11 +12,11 @@ interface CategoryOption {
     slug: string;
 }
 
-interface ProductFiltersProps {
+interface CategoryFiltersProps {
     categories?: CategoryOption[];
 }
 
-export function ProductFilters({ categories = [] }: ProductFiltersProps) {
+export function CategoryFilters({ categories = [] }: CategoryFiltersProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -90,29 +90,7 @@ export function ProductFilters({ categories = [] }: ProductFiltersProps) {
                     )}
                 </div>
 
-                {/* Debounced Search Filter */}
-                <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground">Search</label>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="text"
-                            placeholder="Search products..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 pr-8 text-sm"
-                        />
-                        {searchTerm && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchTerm("")}
-                                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        )}
-                    </div>
-                </div>
+
 
                 {/* Sort Select */}
                 <div className="space-y-2">
@@ -147,7 +125,7 @@ export function ProductFilters({ categories = [] }: ProductFiltersProps) {
                             <button
                                 key={cat._id}
                                 type="button"
-                                onClick={() => updateQueryParam("category", cat._id)}
+                                onClick={() => updateQueryParam("slug", cat.slug)}
                                 className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${activeCategory === (cat.slug || cat.name)
                                     ? "bg-primary text-primary-foreground font-semibold"
                                     : "hover:bg-muted text-foreground"

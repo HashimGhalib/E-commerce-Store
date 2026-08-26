@@ -5,16 +5,20 @@ import { ShoppingBag, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
-    SheetClose,
     SheetContent,
     SheetTrigger,
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
 import { SearchBar } from "@/components/SearchBar";
+import { useState } from "react";
 
 export function Navbar() {
     const cartItemCount = 3; // Placeholder state
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleClose = () => setIsOpen(false);
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/90">
@@ -62,7 +66,7 @@ export function Navbar() {
                     </Link>
 
                     {/* Mobile menu */}
-                    <Sheet>
+                    <Sheet open={isOpen} onOpenChange={setIsOpen}>
                         <SheetTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted hover:text-foreground md:hidden">
                             <Menu className="h-6 w-6" />
                         </SheetTrigger>
@@ -75,24 +79,24 @@ export function Navbar() {
                                 <SearchBar />
 
                                 <nav className="flex flex-col items-start gap-2 font-medium text-sm">
-                                    <SheetClose>
-                                        <Link href="/products" className="py-2 hover:text-primary">
-                                            Products
-                                        </Link>
-                                    </SheetClose>
-                                    <SheetClose>
-                                        <Link href="/categories" className="py-2 hover:text-primary">
-                                            Categories
-                                        </Link>
-                                    </SheetClose>
-                                    <SheetClose>
-                                        <Link href="/login" className="py-2 hover:text-primary">
-                                            <Button aschild={true} variant="default" size="sm" className="gap-2">
-                                                <User className="h-4 w-4" />
-                                                Sign In
-                                            </Button>
-                                        </Link>
-                                    </SheetClose>
+
+                                    <Link href="/products" onClick={handleClose} className="py-2 hover:text-primary">
+                                        Products
+                                    </Link>
+
+
+                                    <Link href="/categories" onClick={handleClose} className="py-2 hover:text-primary">
+                                        Categories
+                                    </Link>
+
+
+                                    {/* Login / Register Button */}
+                                    <Link href="/login" onClick={handleClose} className="py-2 hover:text-primary">
+                                        <Button variant="default" size="sm" className="gap-2">
+                                            <User className="h-4 w-4" />
+                                            Sign In
+                                        </Button>
+                                    </Link>
                                 </nav>
                             </div>
                         </SheetContent>

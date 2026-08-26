@@ -89,7 +89,7 @@ export async function searchProducts(query: string): Promise<IProduct[]> {
  */
 export async function getFeaturedProducts(): Promise<IProduct[]> {
     try {
-        const res = await request<IProduct[]>("/products?featured=true&limit=12");
+        const res = await request<IProduct[]>("/products?limit=12");
         return res.data ?? [];
     } catch (error) {
         console.error("Failed to fetch featured products:", error);
@@ -102,10 +102,10 @@ export async function getFeaturedProducts(): Promise<IProduct[]> {
  */
 export async function getProducts(
     params?: Record<string, string | undefined>
-): Promise<IProduct[]> {
+): Promise<any> {
     try {
-        const res = await request<IProduct[]>(`/products${buildQueryString(params)}`);
-        return res.data ?? [];
+        const res = await request<any>(`/products${buildQueryString(params)}`);
+        return res ?? [];
     } catch (error) {
         console.error("Failed to fetch products:", error);
         return [];
@@ -113,12 +113,27 @@ export async function getProducts(
 }
 
 /**
+ * Get product by slug
+ */
+export async function getProductBySlug(slug: string): Promise<any> {
+    try {
+        const res = await request<any>(`/products/slug/${slug}`);
+        return res.data ?? [];
+    } catch (error) {
+        console.error("Failed to fetch product:", error);
+        return [];
+    }
+}
+
+/**
  * Get all categories
  */
-export async function getCategories<T = any>(): Promise<T[]> {
+export async function getCategories<T = any>(
+    params?: Record<string, string | undefined>
+): Promise<any> {
     try {
-        const res = await request<T[]>("/categories");
-        return res.data ?? [];
+        const res = await request<any>(`/categories${buildQueryString(params)}`);
+        return res ?? [];
     } catch (error) {
         console.error("Failed to fetch categories:", error);
         return [];
