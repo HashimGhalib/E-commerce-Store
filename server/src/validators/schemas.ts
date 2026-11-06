@@ -30,6 +30,8 @@ export const createProductSchema = z.object({
     category: z.string().min(1, "Category ID is required"), // MongoDB ObjectId string
     stock: z.number().int().min(0, "Stock cannot be negative").default(0),
     variants: z.array(productVariantSchema).optional(),
+    ratingsAverage: z.number().min(0).max(5).positive("rating average must be greater than 0"),
+    ratingsCount: z.number().min(0).positive("rating count must be greater than 0")
 });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;

@@ -16,12 +16,15 @@ export interface IProduct extends Document {
     slug: string;
     description: string;
     price: number;
-    image: string;
+    image: string[];
     category: Types.ObjectId | string | ICategory;
     stock: number;
     variants?: IProductVariant[];
 
-    createdAt: string;
-    updatedAt: string;
+    ratingsAverage: number;
+    ratingsCount: number;
+
+    createdAt: Date;
+    updatedAt: Date;
 }
 

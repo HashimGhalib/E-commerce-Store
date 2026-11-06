@@ -1,8 +1,17 @@
+
 import { ApiResponse, IProduct } from "shared";
+import type { PaginatedResponse, ReviewResponse } from "shared";
+
+// ─── Base API URL ─────────────────────────────────────────────────────────────
 
 function baseUrl(): string {
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    return (
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:5000/api"
+    );
 }
+
+// ─── HTTP Error Handler ──────────────────────────────────────────────────────
 
 export class HttpError extends Error {
     public readonly status: number;
@@ -15,7 +24,12 @@ export class HttpError extends Error {
     }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
+// ─── Standard API Request Helper ─────────────────────────────────────────────
+
+async function request<T>(
+    path: string,
+    init?: RequestInit
+): Promise<ApiResponse<T>> {
     const res = await fetch(`${baseUrl()}${path}`, {
         ...init,
         headers: {
@@ -48,9 +62,42 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse
     return body;
 }
 
-// ─── Helper for serializing query parameter objects ──────────────────────────
-function buildQueryString(params?: Record<string, string | undefined>): string {
+// ─── Paginated API Request Helper ────────────────────────────────────────────
+
+async function paginatedRequest<T>(
+    path: string,
+    init?: RequestInit
+): Promise<PaginatedResponse<T>> {
+    const res = await fetch(`${baseUrl()}${path}`, {
+        ...init,
+        headers: {
+            "Content-Type": "application/json",
+            // TODO: forward auth headers when JWT is implemented
+            ...init?.headers,
+        },
+        cache: init?.cache ?? "no-store",
+    });
+
+    const body: PaginatedResponse<T> = await res.json();
+
+    if (!res.ok) {
+        throw new HttpError(
+            body.message ?? `Request failed with status ${res.status}`,
+            res.status,
+            (body as any).errors
+        );
+    }
+
+    return body;
+}
+
+// ─── Query String Helper ─────────────────────────────────────────────────────
+
+function buildQueryString(
+    params?: Record<string, string | undefined>
+): string {
     if (!params) return "";
+
     const searchParams = new URLSearchParams();
 
     Object.entries(params).forEach(([key, value]) => {
@@ -60,82 +107,120 @@ function buildQueryString(params?: Record<string, string | undefined>): string {
     });
 
     const query = searchParams.toString();
+
     return query ? `?${query}` : "";
 }
 
-// ─── Refined API Functions ────────────────────────────────────────────────────
+// ─── Product API Functions ───────────────────────────────────────────────────
 
 /**
- * Health status check
+ * Search products by query string.
  */
-export async function healthStatus(): Promise<ApiResponse<{ status: string }>> {
-    return request<{ status: string }>("/v1/health");
-}
-
-/**
- * Search products by query string
- */
-export async function searchProducts(query: string): Promise<IProduct[]> {
+export async function searchProducts(
+    query: string
+): Promise<IProduct[]> {
     if (!query.trim()) return [];
 
     const res = await request<IProduct[]>(
         `/products${buildQueryString({ search: query })}`
     );
+
     return res.data ?? [];
 }
 
 /**
- * Server-side fetch helper for featured products
+ * Server-side fetch helper for featured products.
  */
 export async function getFeaturedProducts(): Promise<IProduct[]> {
     try {
         const res = await request<IProduct[]>("/products?limit=12");
+
         return res.data ?? [];
     } catch (error) {
         console.error("Failed to fetch featured products:", error);
+
         return [];
     }
 }
 
 /**
- * Get products with dynamic filter parameters (category, sort, search, page)
+ * Get products with dynamic filter parameters.
+ * Supports category, sort, search and page.
  */
 export async function getProducts(
     params?: Record<string, string | undefined>
 ): Promise<any> {
     try {
-        const res = await request<any>(`/products${buildQueryString(params)}`);
+        const res = await request<any>(
+            `/products${buildQueryString(params)}`
+        );
+
         return res ?? [];
     } catch (error) {
         console.error("Failed to fetch products:", error);
+
         return [];
     }
 }
 
 /**
- * Get product by slug
+ * Get a product by its slug.
  */
-export async function getProductBySlug(slug: string): Promise<any> {
+export async function getProductBySlug(
+    slug: string
+): Promise<any> {
     try {
-        const res = await request<any>(`/products/slug/${slug}`);
+        const res = await request<any>(
+            `/products/slug/${encodeURIComponent(slug)}`
+        );
+
         return res.data ?? [];
     } catch (error) {
         console.error("Failed to fetch product:", error);
+
         return [];
     }
 }
 
+// ─── Category API Functions ──────────────────────────────────────────────────
+
 /**
- * Get all categories
+ * Get all categories with optional query parameters.
  */
-export async function getCategories<T = any>(
+export async function getCategories(
     params?: Record<string, string | undefined>
 ): Promise<any> {
     try {
-        const res = await request<any>(`/categories${buildQueryString(params)}`);
+        const res = await request<any>(
+            `/categories${buildQueryString(params)}`
+        );
+
         return res ?? [];
     } catch (error) {
         console.error("Failed to fetch categories:", error);
+
         return [];
     }
+}
+
+// ─── Review API Functions ────────────────────────────────────────────────────
+
+/**
+ * Get paginated reviews for a specific product.
+ */
+export async function getProductReviews(
+    productId: string,
+    params?: {
+        page?: number;
+        limit?: number;
+    }
+): Promise<PaginatedResponse<ReviewResponse>> {
+    const query = new URLSearchParams({
+        page: String(params?.page ?? 1),
+        limit: String(params?.limit ?? 10),
+    });
+
+    return paginatedRequest<ReviewResponse>(
+        `/reviews/product/${encodeURIComponent(productId)}?${query.toString()}`
+    );
 }

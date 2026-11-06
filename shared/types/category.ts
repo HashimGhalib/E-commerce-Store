@@ -6,8 +6,8 @@ export interface ICategory extends Document {
     description?: string;
     parent?: Types.ObjectId | string | null;
 
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface CategoryTreeItem {

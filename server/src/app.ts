@@ -2,9 +2,11 @@ import express, { Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import corsConfig from "./config/corsConfig";
-import healthRouter from "./routes/health.routes";
+
 import productRoutes from "./routes/product.routes";
 import categoryRoutes from "./routes/category.routes";
+import reviewRoutes from "./routes/review.routes";
+
 import { ApiError } from "./utils/ApiError";
 import { errorHandler } from "./middlewares/error.middleware";
 
@@ -26,12 +28,10 @@ app.use(express.urlencoded({ extended: true })); // Parses URL-encoded form data
 
 
 
-app.use("/api/v1", healthRouter);
-
-
 // Register API Endpoints
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // 1. Unmatched Route Handler (404)
 app.use((req: Request, _res: Response, next: NextFunction) => {

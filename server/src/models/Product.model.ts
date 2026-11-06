@@ -53,7 +53,19 @@ const productSchema = new Schema<IProduct>(
             min: 0,
             default: 0
         },
-        variants: [variantSchema]
+        variants: [variantSchema],
+
+        ratingsAverage: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 5,
+        },
+        ratingsCount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
     },
     { timestamps: true }
 );

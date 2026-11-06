@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,13 +23,13 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "E-Commerce App",
+    default: "Goayo",
     template: "%s | E-Commerce App",
   },
   description: "A high-performance full-stack Next.js e-commerce store.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   openGraph: {
-    title: "E-Commerce App",
+    title: "Goayo E-commerce app",
     description: "A high-performance full-stack Next.js e-commerce store.",
     url: "/",
     siteName: "E-Commerce App",
