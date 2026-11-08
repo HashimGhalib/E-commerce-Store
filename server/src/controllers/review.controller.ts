@@ -9,10 +9,10 @@ import { ApiResponse } from "../utils/ApiResponse";
 
 export const getProductReviews = async (
     req: Request<
-        { productId: string }, //ReqParams
-        {}, //ResBody
-        {}, //ReqBody
-        { page?: string; limit?: string } //reqQuery
+        { productId: string },
+        unknown,
+        unknown,
+        { page?: string; limit?: string }
     >,
     res: Response,
     next: NextFunction

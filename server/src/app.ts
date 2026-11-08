@@ -6,9 +6,12 @@ import corsConfig from "./config/corsConfig";
 import productRoutes from "./routes/product.routes";
 import categoryRoutes from "./routes/category.routes";
 import reviewRoutes from "./routes/review.routes";
+import authRoutes from "./routes/auth.routes";
 
 import { ApiError } from "./utils/ApiError";
 import { errorHandler } from "./middlewares/error.middleware";
+import cookieParser from "cookie-parser";
+
 
 const app = express();
 
@@ -25,13 +28,16 @@ app.use(morgan("dev"));
 //body parser
 app.use(express.json()); // Parses JSON request bodies.
 app.use(express.urlencoded({ extended: true })); // Parses URL-encoded form data.
+app.use(cookieParser());
 
+// Register your routes after these middleware.
 
 
 // Register API Endpoints
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/auth", authRoutes);
 
 // 1. Unmatched Route Handler (404)
 app.use((req: Request, _res: Response, next: NextFunction) => {

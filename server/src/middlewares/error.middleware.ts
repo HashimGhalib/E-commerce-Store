@@ -1,15 +1,23 @@
 
 import { Request, Response, NextFunction } from "express";
-import { ApiError } from "../utils/ApiError";
+
+interface ErrorWithDetails extends Partial<Error> {
+    statusCode?: number;
+    code?: number;
+    keyValue?: Record<string, unknown>;
+    path?: string;
+    errors?: Record<string, { path?: string; message?: string }> | unknown[];
+}
 
 export const errorHandler = (
-    err: Error | ApiError | any,
+    err: ErrorWithDetails,
     _req: Request,
     res: Response,
     _next: NextFunction
 ): void => {
     let statusCode =
         Number.isInteger(err.statusCode) &&
+            err.statusCode !== undefined &&
             err.statusCode >= 400 &&
             err.statusCode <= 599
             ? err.statusCode
@@ -36,10 +44,14 @@ export const errorHandler = (
         statusCode = 400;
         message = "Validation failed";
 
-        errors = Object.values(err.errors).map((error: any) => ({
-            field: error.path,
-            message: error.message,
-        }));
+        if (err.errors && typeof err.errors === "object") {
+            errors = Object.values(
+                err.errors as Record<string, { path?: string; message?: string }>
+            ).map((error) => ({
+                field: error.path,
+                message: error.message,
+            }));
+        }
     }
 
     // Log unexpected server errors

@@ -48,7 +48,7 @@ export default async function ProductsPage({ searchParams }: SearchParamsProps) 
                 <main className="flex-1 space-y-4">
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-muted-foreground">
-                            Showing {products.data.length} {products.length === 1 ? "Product" : "Products"}
+                            Showing {products.data.length} {products.data.length === 1 ? "Product" : "Products"}
                         </span>
                     </div>
 

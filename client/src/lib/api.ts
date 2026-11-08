@@ -1,10 +1,10 @@
 
-import { ApiResponse, IProduct } from "shared";
+import { ApiResponse, IProduct, ICategory } from "shared";
 import type { PaginatedResponse, ReviewResponse } from "shared";
 
 // ─── Base API URL ─────────────────────────────────────────────────────────────
 
-function baseUrl(): string {
+export function getApiBaseUrl(): string {
     return (
         process.env.NEXT_PUBLIC_API_URL ||
         "http://localhost:5000/api"
@@ -15,9 +15,9 @@ function baseUrl(): string {
 
 export class HttpError extends Error {
     public readonly status: number;
-    public readonly errors?: any[];
+    public readonly errors?: unknown[];
 
-    constructor(message: string, status: number, errors?: any[]) {
+    constructor(message: string, status: number, errors?: unknown[]) {
         super(message);
         this.status = status;
         this.errors = errors;
@@ -30,7 +30,7 @@ async function request<T>(
     path: string,
     init?: RequestInit
 ): Promise<ApiResponse<T>> {
-    const res = await fetch(`${baseUrl()}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
         ...init,
         headers: {
             "Content-Type": "application/json",
@@ -55,7 +55,7 @@ async function request<T>(
         throw new HttpError(
             body.message ?? `Request failed with status ${res.status}`,
             res.status,
-            (body as any).errors
+            (body as { errors?: unknown[] }).errors
         );
     }
 
@@ -68,7 +68,7 @@ async function paginatedRequest<T>(
     path: string,
     init?: RequestInit
 ): Promise<PaginatedResponse<T>> {
-    const res = await fetch(`${baseUrl()}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
         ...init,
         headers: {
             "Content-Type": "application/json",
@@ -84,7 +84,7 @@ async function paginatedRequest<T>(
         throw new HttpError(
             body.message ?? `Request failed with status ${res.status}`,
             res.status,
-            (body as any).errors
+            (body as { errors?: unknown[] }).errors
         );
     }
 
@@ -121,7 +121,7 @@ export async function searchProducts(
 ): Promise<IProduct[]> {
     if (!query.trim()) return [];
 
-    const res = await request<IProduct[]>(
+    const res = await paginatedRequest<IProduct>(
         `/products${buildQueryString({ search: query })}`
     );
 
@@ -133,7 +133,7 @@ export async function searchProducts(
  */
 export async function getFeaturedProducts(): Promise<IProduct[]> {
     try {
-        const res = await request<IProduct[]>("/products?limit=12");
+        const res = await paginatedRequest<IProduct>("/products?limit=12");
 
         return res.data ?? [];
     } catch (error) {
@@ -149,17 +149,24 @@ export async function getFeaturedProducts(): Promise<IProduct[]> {
  */
 export async function getProducts(
     params?: Record<string, string | undefined>
-): Promise<any> {
+): Promise<PaginatedResponse<IProduct>> {
     try {
-        const res = await request<any>(
+        const res = await paginatedRequest<IProduct>(
             `/products${buildQueryString(params)}`
         );
 
-        return res ?? [];
+        return res;
     } catch (error) {
         console.error("Failed to fetch products:", error);
 
-        return [];
+        return {
+            success: false,
+            data: [],
+            page: 1,
+            limit: 12,
+            total: 0,
+            totalPages: 1,
+        };
     }
 }
 
@@ -168,17 +175,17 @@ export async function getProducts(
  */
 export async function getProductBySlug(
     slug: string
-): Promise<any> {
+): Promise<IProduct | null> {
     try {
-        const res = await request<any>(
+        const res = await request<IProduct>(
             `/products/slug/${encodeURIComponent(slug)}`
         );
 
-        return res.data ?? [];
+        return res.data ?? null;
     } catch (error) {
         console.error("Failed to fetch product:", error);
 
-        return [];
+        return null;
     }
 }
 
@@ -189,17 +196,24 @@ export async function getProductBySlug(
  */
 export async function getCategories(
     params?: Record<string, string | undefined>
-): Promise<any> {
+): Promise<PaginatedResponse<ICategory>> {
     try {
-        const res = await request<any>(
+        const res = await paginatedRequest<ICategory>(
             `/categories${buildQueryString(params)}`
         );
 
-        return res ?? [];
+        return res;
     } catch (error) {
         console.error("Failed to fetch categories:", error);
 
-        return [];
+        return {
+            success: false,
+            data: [],
+            page: 1,
+            limit: 6,
+            total: 0,
+            totalPages: 1,
+        };
     }
 }
 

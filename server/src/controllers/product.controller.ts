@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { Types } from "mongoose";
 import { Product } from "../models/Product.model";
 import { Category } from "../models/Category.model";
 import { CreateProductInput } from "../validators/schemas";
@@ -11,7 +12,7 @@ import { ApiResponse } from "../utils/ApiResponse";
  * @route   POST /api/products
  */
 export const createProduct = async (
-    req: Request<{}, {}, CreateProductInput>,
+    req: Request<Record<string, never>, unknown, CreateProductInput>,
     res: Response,
     next: NextFunction
 ): Promise<void> => {
@@ -27,8 +28,9 @@ export const createProduct = async (
         await product.save();
 
         ApiResponse.success(res, 201, product, "Product created successfully");
-    } catch (error: any) {
-        if (error.code === 11000) {
+    } catch (error: unknown) {
+        const err = error as { code?: number };
+        if (err.code === 11000) {
             next(new ApiError(400, "A product with this name or slug already exists"));
             return;
         }
@@ -50,10 +52,10 @@ export const getProducts = async (
         const limit = parseInt(req.query.limit as string) || 12;
         const skip = (page - 1) * limit;
 
-        const filter: Record<string, any> = {};
+        const filter: Record<string, unknown> = {};
 
         if (req.query.category) {
-            filter.category = req.query.category;
+            filter.category = req.query.category as string;
         }
 
         if (req.query.search) {
@@ -64,7 +66,7 @@ export const getProducts = async (
         const sortQuery = (req.query.sort as string) || "";
         let sortOption: Record<string, 1 | -1> = {
             createdAt: -1
-        }
+        };
 
         switch (sortQuery) {
             case "price_asc":
@@ -90,7 +92,7 @@ export const getProducts = async (
         ]);
 
         ApiResponse.paginated(res, 200, products, page, limit, total);
-    } catch (error: any) {
+    } catch (error) {
         next(error);
     }
 };
@@ -114,7 +116,7 @@ export const getProductBySlug = async (
         }
 
         ApiResponse.success(res, 200, product);
-    } catch (error: any) {
+    } catch (error) {
         next(error);
     }
 };
@@ -129,7 +131,7 @@ export const updateProduct = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
         const updates = req.body;
 
         // 1. Fetch current product to compare existing fields
@@ -143,7 +145,7 @@ export const updateProduct = async (
             const newSlug: string = slugify(updates.name, { lower: true, strict: true, trim: true });
 
             // Ensure no OTHER product possesses this slug
-            const slugExists = await Product.findOne({ slug: newSlug as string, _id: { $ne: id as any } });
+            const slugExists = await Product.findOne({ slug: newSlug as string, _id: { $ne: new Types.ObjectId(id) } });
             if (slugExists) {
                 throw new ApiError(400, "A product with this name already exists");
             }
@@ -169,8 +171,9 @@ export const updateProduct = async (
         }).populate("category", "name slug");
 
         ApiResponse.success(res, 200, product!, "Product updated successfully");
-    } catch (error: any) {
-        if (error.code === 11000) {
+    } catch (error: unknown) {
+        const err = error as { code?: number };
+        if (err.code === 11000) {
             next(new ApiError(400, "A product with this name or slug already exists"));
             return;
         }
@@ -197,7 +200,7 @@ export const deleteProduct = async (
         }
 
         ApiResponse.success(res, 200, undefined, "Product deleted successfully");
-    } catch (error: any) {
+    } catch (error) {
         next(error);
     }
 };

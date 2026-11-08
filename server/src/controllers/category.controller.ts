@@ -5,9 +5,16 @@ import { CreateCategoryInput } from "../validators/schemas";
 import slugify from "slugify";
 import { ApiResponse } from "../utils/ApiResponse";
 
+interface CategoryDocumentLike {
+    _id: { toString(): string } | string;
+    name: string;
+    slug: string;
+    description?: string;
+    parent?: { toString(): string } | string | null;
+}
 
 const buildCategoryTree = (
-    categories: any[],
+    categories: CategoryDocumentLike[],
     parentId: string | null = null
 ): CategoryTreeItem[] => {
     const categoryTree: CategoryTreeItem[] = [];
@@ -24,7 +31,7 @@ const buildCategoryTree = (
             _id: child._id.toString(),
             name: child.name,
             slug: child.slug,
-            description: child.description,
+            ...(child.description ? { description: child.description } : {}),
             parent: child.parent ? child.parent.toString() : null,
             children: buildCategoryTree(categories, child._id.toString()),
         });
@@ -38,7 +45,7 @@ const buildCategoryTree = (
  * @route   POST /api/categories
  */
 export const createCategory = async (
-    req: Request<{}, {}, CreateCategoryInput>,
+    req: Request<Record<string, never>, unknown, CreateCategoryInput>,
     res: Response<IApiResponse<ICategory>>
 ): Promise<void> => {
     try {
@@ -65,12 +72,13 @@ export const createCategory = async (
             message: "Category created successfully",
             data: category,
         });
-    } catch (error: any) {
-        if (error.code === 11000) {
+    } catch (error: unknown) {
+        const err = error as { code?: number; message?: string };
+        if (err.code === 11000) {
             res.status(400).json({ success: false, message: "A category with this name or slug already exists" });
             return;
         }
-        res.status(500).json({ success: false, message: error.message || "Server Error" });
+        res.status(500).json({ success: false, message: err.message || "Server Error" });
     }
 };
 
@@ -88,17 +96,17 @@ export const getCategory = async (
         const limit = parseInt(req.query.limit as string) || 6;
         const skip = (page - 1) * limit;
 
-        const filter: Record<string, any> = {};
+        const filter: Record<string, unknown> = {};
 
         if (req.query.slug) {
-            filter.slug = req.query.slug;
+            filter.slug = req.query.slug as string;
         }
 
         // Dynamic sorting logic
         const sortQuery = (req.query.sort as string) || "";
         let sortOption: Record<string, 1 | -1> = {
             createdAt: -1
-        }
+        };
 
         switch (sortQuery) {
             case "price_asc":
@@ -125,7 +133,7 @@ export const getCategory = async (
         ]);
 
         ApiResponse.paginated(res, 200, categories, page, limit, total);
-    } catch (error: any) {
+    } catch (error) {
         next(error);
     }
 };
@@ -139,15 +147,16 @@ export const getCategoryTree = async (
     res: Response<IApiResponse<CategoryTreeItem[]>>
 ): Promise<void> => {
     try {
-        const allCategories = await Category.find().lean();
+        const allCategories = await Category.find().lean<CategoryDocumentLike[]>();
         const tree = buildCategoryTree(allCategories);
 
         res.status(200).json({
             success: true,
             data: tree,
         });
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message || "Server Error" });
+    } catch (error: unknown) {
+        const err = error as { message?: string };
+        res.status(500).json({ success: false, message: err.message || "Server Error" });
     }
 };
 
@@ -173,8 +182,9 @@ export const getCategoryBySlug = async (
             success: true,
             data: category,
         });
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message || "Server Error" });
+    } catch (error: unknown) {
+        const err = error as { message?: string };
+        res.status(500).json({ success: false, message: err.message || "Server Error" });
     }
 };
 
@@ -222,12 +232,13 @@ export const updateCategory = async (
             message: "Category updated successfully",
             data: category,
         });
-    } catch (error: any) {
-        if (error.code === 11000) {
+    } catch (error: unknown) {
+        const err = error as { code?: number; message?: string };
+        if (err.code === 11000) {
             res.status(400).json({ success: false, message: "A category with this name/slug already exists" });
             return;
         }
-        res.status(500).json({ success: false, message: error.message || "Server Error" });
+        res.status(500).json({ success: false, message: err.message || "Server Error" });
     }
 };
 
@@ -260,7 +271,8 @@ export const deleteCategory = async (
             success: true,
             message: "Category deleted and subcategories unlinked",
         });
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message || "Server Error" });
+    } catch (error: unknown) {
+        const err = error as { message?: string };
+        res.status(500).json({ success: false, message: err.message || "Server Error" });
     }
 };

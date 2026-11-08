@@ -17,7 +17,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     return (
         <main className="container mx-auto max-w-7xl  px-2 sm:px-4 lg:px-8 py-8">
             {product && (
-                <div key={product._id} className="flex flex-col gap-10 md:flex-row md:justify-center p-4">
+                <div key={String(product._id)} className="flex flex-col gap-10 md:flex-row md:justify-center p-4">
                     <Image
                         src={product.image[0]}
                         alt={product.name}

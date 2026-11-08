@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import slugify from "slugify";
 import { Product } from "../models/Product.model";
 import { Category } from "../models/Category.model";
+import { ICategory } from "shared";
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ const seedDatabase = async (): Promise<void> => {
         // 2. Create Top-Level Categories
         console.log("🌱 Seeding Categories...");
         const topCategoryNames = ["Electronics", "Clothing", "Home & Kitchen", "Books"];
-        const createdTopCategories: any[] = [];
+        const createdTopCategories: ICategory[] = [];
 
         for (const name of topCategoryNames) {
             const category = await Category.create({
@@ -50,6 +51,7 @@ const seedDatabase = async (): Promise<void> => {
 
         for (const sub of subCategoryNames) {
             const parentCat = createdTopCategories[sub.parentIdx];
+            if (!parentCat) continue;
             const category = await Category.create({
                 name: sub.name,
                 slug: slugify(sub.name, { lower: true, strict: true }),

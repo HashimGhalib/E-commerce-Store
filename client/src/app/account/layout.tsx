@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { User, Package, Settings, LogOut } from "lucide-react";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 interface AccountLayoutProps {
     children: React.ReactNode;
@@ -54,7 +55,9 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
 
                 {/* Main Account Content Area */}
                 <main className="flex-1 rounded-xl border border-border bg-card p-6 shadow-sm min-h-[400px]">
-                    {children}
+                    <ProtectedRoute>
+                        {children}
+                    </ProtectedRoute>
                 </main>
             </div>
         </div>

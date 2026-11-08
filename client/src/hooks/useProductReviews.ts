@@ -21,6 +21,16 @@ export function useProductReviews({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [prevParams, setPrevParams] = useState({ productId, page, limit });
+    if (
+        prevParams.productId !== productId ||
+        prevParams.page !== page ||
+        prevParams.limit !== limit
+    ) {
+        setPrevParams({ productId, page, limit });
+        setLoading(true);
+    }
+
     const fetchReviews = useCallback(async () => {
         try {
             setLoading(true);
@@ -46,8 +56,40 @@ export function useProductReviews({
     }, [productId, page, limit]);
 
     useEffect(() => {
-        void fetchReviews();
-    }, [fetchReviews]);
+        let ignore = false;
+
+        const load = async () => {
+            try {
+                const response = await getProductReviews(productId, {
+                    page,
+                    limit,
+                });
+                if (!ignore) {
+                    setReviews(response.data);
+                    setTotalPages(response.totalPages);
+                    setTotalReviews(response.total);
+                }
+            } catch (err) {
+                if (!ignore) {
+                    setError(
+                        err instanceof Error
+                            ? err.message
+                            : "Unable to retrieve product reviews."
+                    );
+                }
+            } finally {
+                if (!ignore) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void load();
+
+        return () => {
+            ignore = true;
+        };
+    }, [productId, page, limit]);
 
     return {
         reviews,

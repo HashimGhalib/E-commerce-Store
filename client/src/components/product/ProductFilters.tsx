@@ -5,9 +5,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Search, X, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import type { ICategory } from "shared";
 
 interface CategoryOption {
-    _id: string;
+    _id: ICategory["_id"] | string;
     name: string;
     slug: string;
 }
@@ -145,9 +146,9 @@ export function ProductFilters({ categories = [] }: ProductFiltersProps) {
                         </button>
                         {categories.map((cat) => (
                             <button
-                                key={cat._id}
+                                key={String(cat._id)}
                                 type="button"
-                                onClick={() => updateQueryParam("category", cat._id)}
+                                onClick={() => updateQueryParam("category", String(cat._id))}
                                 className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${activeCategory === (cat.slug || cat.name)
                                     ? "bg-primary text-primary-foreground font-semibold"
                                     : "hover:bg-muted text-foreground"

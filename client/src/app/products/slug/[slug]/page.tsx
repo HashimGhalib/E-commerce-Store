@@ -33,7 +33,7 @@ export default async function ProductDetailPage({
         <main className="container mx-auto max-w-7xl px-2 py-8 sm:px-4 lg:px-8">
             {/* Product Details */}
             <div
-                key={product._id}
+                key={String(product._id)}
                 className="flex flex-col gap-10 p-4 md:flex-row md:justify-center"
             >
                 <Image

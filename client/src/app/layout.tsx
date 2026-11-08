@@ -5,6 +5,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
+import { AuthProvider } from "@/context/AuthContext";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -51,9 +52,11 @@ export default function RootLayout({
     <html lang="en" className={cn(plusJakarta.variable, inter.variable, "font-sans", geist.variable)}>
       <body className={`${inter.className} antialiased min-h-screen bg-background text-foreground`}>
         <Providers>
-          <Navbar />
-          {children}
-          <Footer />
+          <AuthProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </AuthProvider>
         </Providers>
       </body>
     </html>
