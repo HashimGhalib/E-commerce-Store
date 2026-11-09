@@ -1,5 +1,14 @@
+
+import type {
+    Request,
+    Response,
+    NextFunction,
+} from "express";
+
+import type { ParamsDictionary } from "express-serve-static-core";
+
 import { ApiError } from "../utils/ApiError";
-import type { Request, Response, NextFunction } from "express";
+import { ApiResponse } from "../utils/ApiResponse";
 
 import type {
     ApiResponse as IApiResponse,
@@ -18,9 +27,7 @@ import {
     logoutUser,
 } from "../services/auth.service";
 
-import { ApiResponse } from "../utils/ApiResponse";
-
-const REFRESH_TOKEN_COOKIE = "refreshToken"; // a reusable constant for the cookie name
+const REFRESH_TOKEN_COOKIE = "refreshToken";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -72,7 +79,10 @@ function sendAuthResponse(
 ): void {
     setRefreshTokenCookie(res, session.refreshToken);
 
-    const { refreshToken, ...authData } = session;
+    const authData: AuthResponse = {
+        user: session.user,
+        accessToken: session.accessToken,
+    };
 
     ApiResponse.success(
         res,
@@ -86,7 +96,11 @@ function sendAuthResponse(
  * POST /api/auth/register
  */
 export async function register(
-    req: Request<{}, IApiResponse<AuthResponse>, RegisterUserInput>,
+    req: Request<
+        ParamsDictionary,
+        IApiResponse<AuthResponse>,
+        RegisterUserInput
+    >,
     res: Response<IApiResponse<AuthResponse>>,
     next: NextFunction
 ): Promise<void> {
@@ -108,7 +122,11 @@ export async function register(
  * POST /api/auth/login
  */
 export async function login(
-    req: Request<{}, IApiResponse<AuthResponse>, LoginUserInput>,
+    req: Request<
+        ParamsDictionary,
+        IApiResponse<AuthResponse>,
+        LoginUserInput
+    >,
     res: Response<IApiResponse<AuthResponse>>,
     next: NextFunction
 ): Promise<void> {
@@ -139,7 +157,10 @@ export async function refresh(
 
         if (!token) {
             clearRefreshTokenCookie(res);
-            return next(new ApiError(401, "Refresh token is missing."));
+
+            return next(
+                new ApiError(401, "Refresh token is missing.")
+            );
         }
 
         const session = await refreshUserSession(token);

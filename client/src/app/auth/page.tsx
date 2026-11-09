@@ -4,6 +4,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
 
 type AuthMode = "login" | "register";
 
@@ -80,12 +81,12 @@ export default function AuthPage() {
 
                 {/* Brand */}
                 <div className="mb-8 text-center">
-                    <a
+                    <Link
                         href="/"
                         className="font-heading text-2xl font-bold tracking-tight text-primary"
                     >
                         Goayo
-                    </a>
+                    </Link>
 
                     <p className="mt-2 text-sm text-muted-foreground">
                         Welcome to your shopping experience.
@@ -115,8 +116,8 @@ export default function AuthPage() {
                             onClick={() => switchMode("login")}
                             aria-pressed={!isRegister}
                             className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${!isRegister
-                                    ? "bg-card text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
+                                ? "bg-card text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             Login
@@ -127,8 +128,8 @@ export default function AuthPage() {
                             onClick={() => switchMode("register")}
                             aria-pressed={isRegister}
                             className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${isRegister
-                                    ? "bg-card text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
+                                ? "bg-card text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             Create Account
